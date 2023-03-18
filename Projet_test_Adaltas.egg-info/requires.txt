@@ -1,4 +1,0 @@
-supabase==1.0.2
-coverage
-black
-flake8
