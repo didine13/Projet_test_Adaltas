@@ -1,7 +1,8 @@
-#####################   5. Créer une table profiles  #####################
+---------------------   5. Créer une table profiles  ---------------------
 -- 1. Create table profile
 create table public.profiles (
   id uuid not null references auth.users on delete cascade,
+  email varchar(50) not null,
   first_name varchar(50) ,
   last_name varchar(50),
   job varchar(50),
@@ -18,7 +19,7 @@ alter table public.profiles enable row level security;
 
 
 
-####  TRIGGER
+----  TRIGGER
 -- inserts a row into public.profiles
 create function public.add_new_user_and_profile()
 returns trigger
@@ -26,12 +27,10 @@ language plpgsql
 security definer set search_path = public
 as $$
 begin
-  insert into public.profiles (id, first_name, last_name, job)
+  insert into public.profiles (id, email)
   values (
-    new.id,
-    NEW.raw_user_meta_data ->> 'first_name',
-    NEW.raw_user_meta_data ->> 'last_name',
-    NEW.raw_user_meta_data ->> 'job'
+    NEW.id,
+    NEW.email
   );
   return new;
 end;
@@ -43,7 +42,7 @@ create trigger on_auth_user_created
   for each row execute procedure public.add_new_user_and_profile();
 
 
-#####################   6. Créer une table friends qui associe un utilisateur avec un autre utilisateur ami  #####################
+---------------------   6. Créer une table friends qui associe un utilisateur avec un autre utilisateur ami  ---------------------
 create table public.friends (
   user1 uuid not null references auth.users on delete cascade,
   user2 uuid not null references auth.users on delete cascade,
@@ -54,28 +53,37 @@ create table public.friends (
 
 
 
-#####################   7. Joindre les données profiles, avec les données du user postgresql correspondant (auth.users)  #####################
+---------------------   7. Joindre les données profiles, avec les données du user postgresql correspondant (auth.users)  ---------------------
 SELECT *
 FROM public.profiles p
 JOIN auth.users u ON u.id = p.id;
 
 
 
-#####################   8. Implémente le row level security : Implémenter une contrainte Row level security : Un utilisateur ne peut acceder qu’au profile de ses amis. #####################
+---------------------   8. Implémente le row level security : Implémenter une contrainte Row level security : Un utilisateur ne peut acceder qu’au profile de ses amis. ---------------------
 
 SELECT p.*
 FROM public.friends f
-JOIN profile p ON p.id = f.user1
-JOIN auth.users u ON u.id = f.user1
+JOIN public.profiles p ON p.id = f.user1
 WHERE p.id = auth.uid()
 
-###### RLS
+------ RLS
 
 create policy "Users can view only friend's profile."
-  on public.profile
+  on public.profiles
   for select using (
-    id in (
+    profiles.id in (
       select user2 from public.friends
-      where auth.uid() = user1
+      where auth.uid() = friends.user1
     )
   );
+
+create policy "Users can see all friend's profile."
+on public.profiles
+for select
+using (
+  exists (
+    select 1 from public.friends
+    where auth.uid() = friends.user1 and profiles.id = friends.user1
+  )
+);

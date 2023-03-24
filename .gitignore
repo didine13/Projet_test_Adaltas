@@ -2,3 +2,13 @@
 .coverage
 **/__pycache__/
 .pytest_cache/
+__init__
+*/__init__
+*/__pycache__
+build/
+MANIFEST.in
+docker/volumes/db/data
+docker/volumes/storage
+docker/.env
+docker/test.http
+docker/docker-compose.override.yml
