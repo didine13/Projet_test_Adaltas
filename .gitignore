@@ -2,8 +2,9 @@
 .coverage
 **/__pycache__/
 .pytest_cache/
-__init__
-*/__init__
+__init__*
+__pycache__
+*/__init__*
 */__pycache__
 build/
 MANIFEST.in
