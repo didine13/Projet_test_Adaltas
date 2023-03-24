@@ -6,7 +6,7 @@ __init__*
 __pycache__
 */__init__*
 */__pycache__
-build/
+build
 MANIFEST.in
 docker/volumes/db/data
 docker/volumes/storage
