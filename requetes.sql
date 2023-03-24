@@ -78,6 +78,8 @@ create policy "Users can view only friend's profile."
     )
   );
 
+-- OR
+
 create policy "Users can see all friend's profile."
 on public.profiles
 for select
